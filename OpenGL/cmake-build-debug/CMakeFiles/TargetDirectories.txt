@@ -1,0 +1,6 @@
+/home/snake0x8/CLionProjects/OpenGL/cmake-build-debug/CMakeFiles/OpenGl.dir
+/home/snake0x8/CLionProjects/OpenGL/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/snake0x8/CLionProjects/OpenGL/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/snake0x8/CLionProjects/OpenGL/cmake-build-debug/glad/CMakeFiles/GLAD.dir
+/home/snake0x8/CLionProjects/OpenGL/cmake-build-debug/glad/CMakeFiles/edit_cache.dir
+/home/snake0x8/CLionProjects/OpenGL/cmake-build-debug/glad/CMakeFiles/rebuild_cache.dir

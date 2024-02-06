@@ -1,0 +1,4 @@
+/opt/clion-2023.2.2/bin/cmake/linux/x64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" -S /home/snake0x8/CLionProjects/OpenGL -B /home/snake0x8/CLionProjects/OpenGL/cmake-build-debug
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/snake0x8/CLionProjects/OpenGL/cmake-build-debug
