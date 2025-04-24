@@ -64,7 +64,8 @@ sudo apt update && sudo apt install -y \
     libxrandr-dev \
     libxi-dev \
     libxinerama-dev \
-    libxcursor-dev
+    libxcursor-dev \
+    libglm-dev
 
 🔧 Building and Running the Project
 
