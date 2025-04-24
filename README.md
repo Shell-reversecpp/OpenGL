@@ -2,11 +2,11 @@ This project is a modern C++ template for developing OpenGL applications with a 
 ✅ wxWidgets + OpenGL Integration
 ✅ GLAD Loader
 ✅ Modular structure: rendering, UI with Observer pattern 
-✅ Shader Management
-✅ Vertex Buffer Objects (VBO)
-✅ Vertex Array Objects (VAO)
+✅ Shader Management 
+✅ Vertex Buffer Objects (VBO) 
+✅ Vertex Array Objects (VAO) 
 
-| 3D Cube | Rotating Pyramid |
+| 3D Cube + Light | Rotating Pyramid  + Light |
 |--------|------------------|
 | ![Cube](https://github.com/Shell-reversecpp/OpenGL/blob/task1/cube.png?raw=true) | ![Pyramid](https://github.com/Shell-reversecpp/OpenGL/blob/task1/pyramid.png?raw=true) |
 
