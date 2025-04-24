@@ -48,7 +48,7 @@ OpenGlWithWx/
 
 │       └── shader.vert
 
-├── *.cpp / *.h                 # Your source and header files
+├── *.cpp / *.h                 
 
 ✅ Install Required Dependencies
 
