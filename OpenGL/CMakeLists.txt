@@ -34,7 +34,7 @@ set(SOURCES
 add_executable(OpenGl ${SOURCES})
 
 target_include_directories(OpenGl PRIVATE
-        ${CMAKE_SOURCE_DIR}/stb-master
+        ${CMAKE_SOURCE_DIR}/stb
 )
 
 target_link_libraries(OpenGl PRIVATE
