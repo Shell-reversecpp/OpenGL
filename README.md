@@ -1,4 +1,4 @@
-This project is a modern C++ template for developing OpenGL applications with a wxWidgets GUI on Linux. It's designed to serve as a robust starting point for interactive 3D applications, visual tools, or graphical editors.
+This project is a modern C++ template for developing OpenGL applications with a wxWidgets GUI on Linux. It's designed to serve as a robust starting point for interactive 3D applications, visual tools.
 
 ✅ wxWidgets + OpenGL Integration
 
