@@ -31,14 +31,23 @@ This guide provides step-by-step instructions to install dependencies, configure
 Your project directory should look like this:
 
 OpenGlWithWx/
+
 ├── CMakeLists.txt              # CMake configuration file
+
 ├── stb/                        # Contains stb_image.h
+
 │   └── stb_image.h
+
 ├── glad/                       # GLAD source + its own CMakeLists.txt
+
 ├── resources/
+
 │   └── shaders/
+
 │       ├── shader.frag
+
 │       └── shader.vert
+
 ├── *.cpp / *.h                 # Your source and header files
 
 ✅ Install Required Dependencies
