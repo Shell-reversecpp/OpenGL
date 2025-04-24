@@ -1,0 +1,1 @@
+/usr/bin/c++ -g CMakeFiles/wxrc.dir/__/__/__/utils/wxrc/wxrc.cpp.o -o ../lib/wxrc-3.3  -Wl,-rpath,/home/snake0x8/CLionProjects/InteractiveGLCanvaswithControls/OpenGL/cmake-build-debug/wxWidgets-master/lib: ../lib/libwx_baseu_xml-3.3.so.0.0.0 ../lib/libwx_baseu-3.3.so.0.0.0

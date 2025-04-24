@@ -1,42 +1,50 @@
 cmake_minimum_required(VERSION 3.15)
-project(OpenGl)
+project(OpenGlWithWx)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
-#find_package(SFML 2.5 COMPONENTS graphics window REQUIRED)
 find_package(OpenGL REQUIRED)
-find_package(GLUT REQUIRED)
-find_package(GLEW REQUIRED)
-find_package(glfw3 REQUIRED)
+find_package(wxWidgets REQUIRED COMPONENTS core base gl)
+
+include(${wxWidgets_USE_FILE})
+
+add_subdirectory(glad)
+
+
 
 configure_file(resources/shaders/shader.frag resources/shaders/shader.frag COPYONLY)
 configure_file(resources/shaders/shader.vert resources/shaders/shader.vert COPYONLY)
 
-# Добавьте подкаталог glad
-add_subdirectory(glad)
-
-
-# Укажите исходные файлы вашего проекта
 set(SOURCES
-        main.cpp
         common.h
-        Shaders.cpp
-        Shaders.h
-        HighResolutionTimer.cpp
-        HighResolutionTimer.h
-        GameWindow.cpp
-        GameWindow.h
-        Game.cpp
-        Game.h
+        Shaders.cpp Shaders.h
+        GameWindow.cpp GameWindow.h
+        Game.cpp Game.h
+        WidgetWindow.cpp WidgetWindow.h
+        GLCanvas.cpp GLCanvas.h
+        UIElement.cpp UIElement.h
+        UI.cpp UI.h
+        UIButton.cpp UIButton.h
+        IButtonListener.cpp
+        IButtonListener.h
+        ControlPanel.cpp
+        ControlPanel.h
 )
 
-# Создайте исполняемый файл
 add_executable(OpenGl ${SOURCES})
 
-# Укажите пути к заголовочным файлам
-target_include_directories(OpenGl PRIVATE ${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS})
+target_include_directories(OpenGl PRIVATE
+        ${CMAKE_SOURCE_DIR}/stb-master
+)
 
-# Линковка с библиотекой GLAD
-target_link_libraries(OpenGl PRIVATE ${OPENGL_LIBRARIES} ${GLUT_LIBRARIES} GLEW::GLEW glfw GLAD)
+target_link_libraries(OpenGl PRIVATE
+        ${wxWidgets_LIBRARIES}
+        ${OPENGL_LIBRARIES}
+        GLAD
+)
 
-target_link_libraries(OpenGl PRIVATE GLAD)
+add_custom_command(TARGET OpenGl PRE_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/resources
+        ${CMAKE_BINARY_DIR}/resources
+)
