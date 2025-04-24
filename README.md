@@ -1,9 +1,14 @@
 This project is a modern C++ template for developing OpenGL applications with a wxWidgets GUI on Linux. It's designed to serve as a robust starting point for interactive 3D applications, visual tools, or graphical editors.
 ✅ wxWidgets + OpenGL Integration
 ✅ GLAD Loader
+✅ Modular structure: rendering, UI with Observer pattern 
 ✅ Shader Management
 ✅ Vertex Buffer Objects (VBO)
 ✅ Vertex Array Objects (VAO)
+
+| 3D Cube | Rotating Pyramid |
+|--------|------------------|
+| ![Cube](https://github.com/Shell-reversecpp/OpenGL/blob/task1/cube.png?raw=true) | ![Pyramid](https://github.com/Shell-reversecpp/OpenGL/blob/task1/pyramid.png?raw=true) |
 
 🛠️ Building a C++ OpenGL + wxWidgets Project on Linux (Debian/Ubuntu)
 
