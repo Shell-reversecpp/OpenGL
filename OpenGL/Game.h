@@ -5,45 +5,61 @@
 #ifndef OPENGL_GAME_H
 #define OPENGL_GAME_H
 
-#include "common.h"
-#include "GameWindow.h"
-#include "HighResolutionTimer.h"
+#include "ControlPanel.h"
+#include "UI.h"
 
-// Classes used in game
+
 class CShader;
 class CShaderProgram;
-class CHighResolutionTimer;
+class GLCanvas;
 
 class Game {
 private:
     CShaderProgram* m_pShaderProgram;
-    CHighResolutionTimer* m_pTimer;
+    wxTimer* m_pUpdateTimer;
     glm::mat4* m_pModelMatrix;
     glm::mat4* m_pViewMatrix;
     glm::mat4* m_pProjectionMatrix;
-    GLuint m_uiVAO;  // A vertex array object (to wrap VBOs)
-    GLFWwindow* m_window;
+    GLuint m_uiVAO;
+    GLuint m_cubeVAO{};
+    GLuint m_cubeVBO[2]{};
+    GLCanvas* m_glCanvas;
+    float m_spacing{};
+    wxDateTime m_startTime;
+    UI* m_ui{};
+    ControlPanel* m_controlPanel{};
+
+    void OnKeyPress(wxKeyEvent& event);
+    void OnMouseClick(wxMouseEvent& event);
+
+    bool m_showPanel;
 
 public:
-    Game();
+    Game(GLCanvas* canvas);
     ~Game();
-    static Game& GetInstance();
-    void SetGLFWWindow(GLFWwindow* window);
-    int Execute();
+
+    bool Initialise();
+    void Render();
+    void Update();
+    void UpdateProjectionMatrix(int width, int height) const;
+    void OnTimer(wxTimerEvent& event);
+
 
 private:
-    float m_spacing;
-
-    void DrawTriangle(glm::vec3 t);
+    void DrawPyramid(glm::vec3 t, float deltaTime);
+    void DrawCube(glm::vec3 pos, float deltaTime);
     void DrawTriangleStack(glm::vec3 s);
+    wxDateTime m_lastUpdateTime;
+    wxDateTime m_lastFrameTime;
+    float m_lastDeltaTime = 0.0f;
 
+    wxTimer m_updateTimer;
 
-    void Initialise();
-    void Update();
-    void Render();
-    void GameLoop();
-    static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+    float m_rotationAngleCube = 0.0f;
+    float m_rotationAngle = 0.0f;
+    wxStopWatch m_frameTimer;
+    float m_elapsedTime = 0.0f;
+    float m_deltaTime = 0.0f;
 };
 
-
-#endif //OPENGL_GAME_H
+#endif // OPENGL_GAME_H

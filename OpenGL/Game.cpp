@@ -4,214 +4,355 @@
 
 #include "Game.h"
 #include "Shaders.h"
+#include "GLCanvas.h"
+#include "UIButton.h"
 
-Game& Game::GetInstance() {
-    static Game instance;
-    return instance;
+
+Game::Game(GLCanvas* canvas)
+    : m_pShaderProgram(nullptr),
+      m_pUpdateTimer(new wxTimer()),
+      m_pViewMatrix(new glm::mat4(1)),
+      m_pProjectionMatrix(new glm::mat4(1)),
+      m_uiVAO(0),
+      m_cubeVAO(0),
+      m_glCanvas(canvas),
+      m_ui(nullptr),
+      m_controlPanel(nullptr),
+      m_showPanel(false),
+      m_deltaTime(0.0f)
+{
+    m_pUpdateTimer->Bind(wxEVT_TIMER, &Game::OnTimer, this);
+    m_pUpdateTimer->Start(16);
+    m_lastFrameTime = wxDateTime::Now();
 }
 
-
-Game::Game() : m_pShaderProgram(nullptr), m_pTimer(nullptr), m_pModelMatrix(nullptr),
-               m_pViewMatrix(nullptr), m_pProjectionMatrix(nullptr), m_uiVAO(0), m_window(nullptr) {
-
-    // Создать окно GLFW
-    m_window = GameWindow::GetInstance().Init();
-    glfwSetWindowUserPointer(m_window, this);
-    // Проверить на ошибки при создании окна
-    if (!m_window) {
-        std::cerr << "Failed to create GLFW window" << std::endl;
-        return;
-    }
-}
-
-
-void Game::SetGLFWWindow(GLFWwindow* window){
-    m_window = window;
-    glfwSetKeyCallback(m_window, KeyCallback);
-}
-
-int Game::Execute() {
-    //this->SetGLFWWindow(m_window);
-    if (!m_window) {
-        return -1;
-    }
-
-    Initialise();
-    GameLoop();
-
-    return 0;
-}
-
-void Game::Initialise() {
-    m_pShaderProgram = new CShaderProgram;
-    m_pTimer = new CHighResolutionTimer;
-    m_pModelMatrix = new glm::mat4(1);
-    m_pViewMatrix = new glm::mat4(1);
-    m_pProjectionMatrix = new glm::mat4(1);
-
-    this->m_spacing = 0.5f;
-
-    glfwSetKeyCallback(m_window, KeyCallback);
-   // m_window = GameWindow::GetInstance().Init();
-
-    if (!m_window) {
-        // Обработка ошибки создания окна
-        std::cerr << "Failed to create GLFW window" << std::endl;
-        return;
-    }
-
-    GLuint uiVBO[2];  // Two vertex buffer objects
-
-    float fTrianglePositions[9];  // An array to store triangle vertex positions
-    float fTriangleColor[9];      // An array to store triangle vertex colours
-
-    // This sets the position, viewpoint, and up vector of the camera
-    glm::vec3 vEye(10, 10, 10);
-    glm::vec3 vView(0, 0, 0);
-    glm::vec3 vUp(0, 1, 0);
-    *m_pViewMatrix = glm::lookAt(vEye, vView, vUp);
-
-    // This creates a view frustum
-    *m_pProjectionMatrix = glm::perspective(45.0f, 1.333f, 1.0f, 150.0f);
-
-    // This sets the background colour
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
-    // Setup triangle vertex positions
-    fTrianglePositions[0] = -1.0f; fTrianglePositions[1] = 0.0f; fTrianglePositions[2] = 0.0f;
-    fTrianglePositions[3] = 1.0f; fTrianglePositions[4] = 0.0f; fTrianglePositions[5] = 0.0f;
-    fTrianglePositions[6] = 0.0f; fTrianglePositions[7] = 1.0f; fTrianglePositions[8] = 0.0f;
-
-    // Setup triangle vertex colours
-    fTriangleColor[0] = 0.0f; fTriangleColor[1] = 1.0f; fTriangleColor[2] = 0.0f;
-    fTriangleColor[3] = 0.0f; fTriangleColor[4] = 0.0f; fTriangleColor[5] = 1.0f;
-    fTriangleColor[6] = 1.0f; fTriangleColor[7] = 0.0f; fTriangleColor[8] = 0.0f;
-
-    // Generate a VAO and two VBOs
-    glGenVertexArrays(1, &m_uiVAO);
-    glGenBuffers(2, &uiVBO[0]);
-
-    // Create the VAO for the triangle
-    glBindVertexArray(m_uiVAO);
-
-    // Create a VBO for the triangle vertices
-    glBindBuffer(GL_ARRAY_BUFFER, uiVBO[0]);
-    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), fTrianglePositions, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-    // Create a VBO for the triangle colours
-    glBindBuffer(GL_ARRAY_BUFFER, uiVBO[1]);
-    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), fTriangleColor, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-    // Load and compile shaders
-     CShader shVertex, shFragment;
-     shVertex.LoadShader("resources/shaders/shader.vert", GL_VERTEX_SHADER);
-     shFragment.LoadShader("resources/shaders/shader.frag", GL_FRAGMENT_SHADER);
-// Load and compile shaders
-
-    // Create shader program and add shaders
-    m_pShaderProgram->CreateProgram();
-    m_pShaderProgram->AddShaderToProgram(&shVertex);
-    m_pShaderProgram->AddShaderToProgram(&shFragment);
-
-    // Link and use the program
-    m_pShaderProgram->LinkProgram();
-    m_pShaderProgram->UseProgram();
-
-    // Set the modeling, viewing, and projection matrices in the shader
-    m_pShaderProgram->SetUniform("viewMatrix", m_pViewMatrix);
-    m_pShaderProgram->SetUniform("projectionMatrix", m_pProjectionMatrix);
-
-    m_pTimer->Start();
-    glEnable(GL_DEPTH_TEST);
-}
-
-void Game::Update() {
-    // TODO: Add your game update logic here
-}
-
-void Game::DrawTriangle(glm::vec3 t) {
-    // Set the modeling matrix
-    *m_pModelMatrix = glm::translate(glm::mat4(1), glm::vec3(t.x, t.y, t.z));
-    m_pShaderProgram->SetUniform("modelMatrix", m_pModelMatrix);
-    m_pShaderProgram->SetUniform("t", static_cast<float>(m_pTimer->Elapsed()));
-
-    // Render the triangle consisting of 3 vertices
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-}
-
-void Game::DrawTriangleStack(glm::vec3 s) {
-    for (int i = 0; i < 10; ++i)
-    {
-
-        this->DrawTriangle(glm::vec3(s.x, s.y , s.z + i * this->m_spacing));
-    }
-}
-
-void Game::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    // TODO: Handle key events
-    Game* game = static_cast<Game*>(glfwGetWindowUserPointer(window));
-    if (game == nullptr) return;
-
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
-    }
-    else if(key == GLFW_KEY_UP && action == GLFW_PRESS)
-    {
-        game->m_spacing += 0.05f;
-    }
-    else if(key == GLFW_KEY_DOWN && action == GLFW_PRESS)
-    {
-        game->m_spacing -= 0.05;
-    }
-
-}
-
-
-
-
-void Game::Render() {
-    // Clear the buffer for rendering a new frame
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // Bind the VAO
-    glBindVertexArray(m_uiVAO);
-
-    this->DrawTriangleStack(glm::vec3 (0, 5 ,  0));
-    this->DrawTriangleStack(glm::vec3 (2, 5 , -1));
-    this->DrawTriangleStack(glm::vec3 (4, 5 , -3));
-
-
-    // Swap buffers to show the rendered image
-    glfwSwapBuffers(m_window);
-}
-
-void Game::GameLoop() {
-    while (!glfwWindowShouldClose(m_window)) {
-        // Update
-        Update();
-
-        // Render
-        Render();
-
-        // Poll for and process events
-        glfwPollEvents();
-    }
-}
 
 
 Game::~Game() {
     delete m_pShaderProgram;
-    delete m_pTimer;
-    delete m_pModelMatrix;
+    delete m_pUpdateTimer;
+   // delete m_pModelMatrix;
     delete m_pViewMatrix;
     delete m_pProjectionMatrix;
+    delete m_controlPanel;
+    delete m_glCanvas;
+    delete m_ui;
 
-    // Завершение работы GLFW
-    glfwTerminate();
+    if(m_uiVAO) glDeleteVertexArrays(1, &m_uiVAO);
+    if(m_cubeVAO) glDeleteVertexArrays(1, &m_cubeVAO);
+    glDeleteBuffers(2, m_cubeVBO);
+
+}
+
+bool Game::Initialise() {
+    if (!m_glCanvas->IsGLInitialized()) {
+        wxLogError("OpenGL context not initialized!");
+        return false;
+    }
+
+    m_glCanvas->SetCurrent();
+
+    // Инициализация шейдеров
+    m_pShaderProgram = new CShaderProgram;
+    CShader shVertex, shFragment;
+
+    if (!shVertex.LoadShader("resources/shaders/shader.vert", GL_VERTEX_SHADER) ||
+        !shFragment.LoadShader("resources/shaders/shader.frag", GL_FRAGMENT_SHADER)) {
+        wxLogError("Failed to load shaders!");
+        return false;
+    }
+
+    m_pShaderProgram->CreateProgram();
+    m_pShaderProgram->AddShaderToProgram(&shVertex);
+    m_pShaderProgram->AddShaderToProgram(&shFragment);
+
+    if (!m_pShaderProgram->LinkProgram()) {
+        wxLogError("Failed to link shader program!");
+        return false;
+    }
+
+    // UI
+    m_ui = new UI();
+
+    m_controlPanel = new ControlPanel(m_glCanvas->GetParent());
+    m_ui->AddElement(m_controlPanel);
+
+    UIButton* button = new UIButton(10, 10, 64, 64, "resources/Textures/showForm.png");
+    button->SetOnClick([this]() {
+        m_showPanel = !m_showPanel;
+        m_controlPanel->Show(m_showPanel);
+    });
+    m_ui->AddElement(button);
+
+    // Матрицы камеры
+    glm::vec3 vEye(0.0f, 0.0f, 10.0f);
+    glm::vec3 vView(0.0f, 0.0f, 0.0f);
+    glm::vec3 vUp(0.0f, 1.0f, 0.0f);
+    *m_pViewMatrix = glm::lookAt(vEye, vView, vUp);
+
+    int w, h;
+    m_glCanvas->GetSize(&w, &h);
+    this->UpdateProjectionMatrix(w, h);
+
+    // --- ПИРАМИДА ---
+    GLuint uiVBO[2];
+
+    float fPyramidPositions[] = {
+        // Основание
+        -1.0f, 0.0f, -1.0f,
+         1.0f, 0.0f, -1.0f,
+         0.0f, 0.0f,  1.0f,
+
+        // Грань 1
+        -1.0f, 0.0f, -1.0f,
+         1.0f, 0.0f, -1.0f,
+         0.0f, 1.5f,  0.0f,
+
+        // Грань 2
+         1.0f, 0.0f, -1.0f,
+         0.0f, 0.0f,  1.0f,
+         0.0f, 1.5f,  0.0f,
+
+        // Грань 3
+         0.0f, 0.0f,  1.0f,
+        -1.0f, 0.0f, -1.0f,
+         0.0f, 1.5f,  0.0f
+    };
+
+    float fPyramidColor[] = {
+        0.8f, 0.8f, 0.8f,  0.8f, 0.8f, 0.8f,  0.8f, 0.8f, 0.8f,
+        1.0f, 0.0f, 0.0f,  1.0f, 0.0f, 0.0f,  1.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f,  0.0f, 1.0f, 0.0f,  0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 1.0f,  0.0f, 0.0f, 1.0f,  0.0f, 0.0f, 1.0f
+    };
+
+    glGenVertexArrays(1, &m_uiVAO);
+    glBindVertexArray(m_uiVAO);
+
+    glGenBuffers(2, uiVBO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, uiVBO[0]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(fPyramidPositions), fPyramidPositions, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+
+    glBindBuffer(GL_ARRAY_BUFFER, uiVBO[1]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(fPyramidColor), fPyramidColor, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+
+    // CUBE INIT
+    float fCubeVertices[] = {
+
+        -1.0f, -1.0f,  1.0f,
+         1.0f, -1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+        -1.0f,  1.0f,  1.0f,
+
+
+        -1.0f, -1.0f, -1.0f,
+        -1.0f,  1.0f, -1.0f,
+         1.0f,  1.0f, -1.0f,
+         1.0f, -1.0f, -1.0f
+    };
+
+    GLuint fCubeIndices[] = {
+
+        0, 1, 2,  2, 3, 0,
+
+        3, 2, 6,  6, 5, 3,
+
+        5, 6, 7,  7, 4, 5,
+
+        4, 7, 1,  1, 0, 4,
+
+        4, 0, 3,  3, 5, 4,
+
+        1, 7, 6,  6, 2, 1
+    };
+
+    float fCubeColor[] = {
+        1, 0, 0,  0, 1, 0,  0, 0, 1,  1, 1, 0,
+        1, 0, 1,  0, 1, 1,  1, 1, 1,  0, 0, 0
+    };
+
+    glGenVertexArrays(1, &m_cubeVAO);
+    glBindVertexArray(m_cubeVAO);
+
+    GLuint vboCube[2], eboCube;
+    glGenBuffers(2, vboCube);
+    glGenBuffers(1, &eboCube);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vboCube[0]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(fCubeVertices), fCubeVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vboCube[1]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(fCubeColor), fCubeColor, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboCube);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(fCubeIndices), fCubeIndices, GL_STATIC_DRAW);
+
+
+    m_pShaderProgram->UseProgram();
+    m_pShaderProgram->SetUniform("viewMatrix", m_pViewMatrix);
+    m_pShaderProgram->SetUniform("projectionMatrix", m_pProjectionMatrix);
+
+
+
+    return true;
 }
 
 
+
+void Game::OnMouseClick(wxMouseEvent& event) {
+    if (m_ui)
+        m_ui->HandleMouse(event);
+}
+
+void Game::UpdateProjectionMatrix(int width, int height) const {
+    if(height == 0) height = 1;
+    *m_pProjectionMatrix = glm::perspective(
+        glm::radians(45.0f),
+        (float)width/(float)height,
+        0.1f,
+        100.0f
+    );
+}
+
+void Game::OnTimer(wxTimerEvent& event) {
+    wxDateTime currentTime = wxDateTime::Now();
+    wxTimeSpan timeDiff = currentTime - m_lastFrameTime;
+    m_lastFrameTime = currentTime;
+
+    m_deltaTime = static_cast<float>(timeDiff.GetMilliseconds().ToDouble() / 1000.0);
+    m_elapsedTime += m_deltaTime;
+
+    m_glCanvas->Bind(wxEVT_LEFT_DOWN, &Game::OnMouseClick, this);
+    m_glCanvas->Refresh();
+}
+
+void Game::Render() {
+    if (!m_glCanvas || !m_glCanvas->IsGLInitialized()) return;
+
+    wxGLContext* glContext = m_glCanvas->GetContext();
+    if (!glContext) return;
+
+
+
+
+    while (glGetError() != GL_NO_ERROR);
+
+    glClearColor(0.1f, 0.2f, 0.5f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+
+
+
+
+    m_pShaderProgram->UseProgram();
+
+    m_pShaderProgram->SetUniform("viewMatrix", *m_pViewMatrix);
+    m_pShaderProgram->SetUniform("projectionMatrix", *m_pProjectionMatrix);
+
+    m_pShaderProgram->SetUniform("t", m_elapsedTime);
+
+    if (m_controlPanel) {
+        bool drawPyramid = m_controlPanel->GetCheckBoxValueShowPyramid();
+        bool drawCube = m_controlPanel->GetCheckBoxValueShowCube();
+
+        if (drawPyramid && !drawCube) {
+            DrawPyramid(glm::vec3(0, 0, 0),  m_deltaTime);
+        } else if (drawCube && !drawPyramid) {
+            DrawCube(glm::vec3(0, 0, 0),  m_deltaTime);
+        }
+    }
+
+
+
+    glUseProgram(0);
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+
+    int w, h;
+    m_glCanvas->GetSize(&w, &h);
+    glOrtho(0, w, h, 0, -1, 1); // 2D UI
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    glDisable(GL_DEPTH_TEST); // UI
+
+    if (m_ui) {
+        m_ui->Render();
+    }
+
+
+    glEnable(GL_DEPTH_TEST);
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+
+    glMatrixMode(GL_MODELVIEW);
+
+
+    m_glCanvas->SwapBuffers();
+}
+
+void Game::Update() {
+    static wxDateTime lastUpdateTime = wxDateTime::Now();
+    wxTimeSpan span = wxDateTime::Now() - lastUpdateTime;
+    lastUpdateTime = wxDateTime::Now();
+    float deltaTime = span.GetMilliseconds().ToDouble() / 1000.0f;
+
+    m_lastDeltaTime = deltaTime;
+}
+
+void Game::DrawPyramid(glm::vec3 t, float deltaTime)
+{
+    static float pyramidAngle = 0.0f;
+    pyramidAngle += deltaTime * glm::radians(60.0f);
+    pyramidAngle = fmod(pyramidAngle, glm::two_pi<float>());
+
+    float angleX = pyramidAngle * 0.7f;
+    float angleY = pyramidAngle;
+    float angleZ = pyramidAngle * 1.3f;
+
+    glm::vec3 pivotOffset(0.0f, 0.75f, 0.0f);
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), t);
+
+    model = glm::translate(model, pivotOffset);
+    model = glm::rotate(model, angleX, glm::vec3(1, 0, 0));
+    model = glm::rotate(model, angleY, glm::vec3(0, 1, 0));
+    model = glm::rotate(model, angleZ, glm::vec3(0, 0, 1));
+    model = glm::translate(model, -pivotOffset);
+
+    m_pShaderProgram->SetUniform("modelMatrix", model);
+    glBindVertexArray(m_uiVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 12);
+    glBindVertexArray(0);
+}
+
+
+void Game::DrawCube(glm::vec3 pos, float deltaTime)
+{
+    static float cubeAngle = 0.0f;
+    cubeAngle += deltaTime * glm::radians(60.0f);
+    cubeAngle = fmod(cubeAngle, glm::two_pi<float>());
+
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), pos);
+    model = glm::rotate(model, cubeAngle, glm::vec3(1.0f, 1.0f, 0.0f));
+
+    m_pShaderProgram->SetUniform("modelMatrix", model);
+    glBindVertexArray(m_cubeVAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+    glBindVertexArray(0);
+}
